@@ -14,11 +14,12 @@ import com.example.inaki.ui.ModoApp
 @Composable
 fun MainScreen(estado: EstadoApp) {
     var tabSeleccionadaIndex by remember { mutableIntStateOf(0) }
+    var mostrandoAsistenteAnuncio by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Reset tab index when mode changes
     LaunchedEffect(estado.modoActivo) {
         tabSeleccionadaIndex = 0
+        mostrandoAsistenteAnuncio = false
     }
 
     LaunchedEffect(estado.snackbarMensaje) {
@@ -29,67 +30,107 @@ fun MainScreen(estado: EstadoApp) {
     }
 
     BackHandler {
-        // Prevent accidental back exit
+        if (mostrandoAsistenteAnuncio) {
+            mostrandoAsistenteAnuncio = false
+        }
     }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            NavigationBar {
-                when (estado.modoActivo) {
-                    ModoApp.BUSCADOR -> {
-                        NavigationBarItem(
-                            selected = tabSeleccionadaIndex == 0,
-                            onClick = { tabSeleccionadaIndex = 0 },
-                            icon = { Text("🏠", fontSize = 18.sp) },
-                            label = { Text("Explorar") }
-                        )
-                        NavigationBarItem(
-                            selected = tabSeleccionadaIndex == 1,
-                            onClick = { tabSeleccionadaIndex = 1 },
-                            icon = { Text("❤️", fontSize = 18.sp) },
-                            label = { Text("Favoritos") }
-                        )
-                        NavigationBarItem(
-                            selected = tabSeleccionadaIndex == 2,
-                            onClick = { tabSeleccionadaIndex = 2 },
-                            icon = { Text("🔔", fontSize = 18.sp) },
-                            label = { Text("Alertas") }
-                        )
-                        NavigationBarItem(
-                            selected = tabSeleccionadaIndex == 3,
-                            onClick = { tabSeleccionadaIndex = 3 },
-                            icon = { Text("💬", fontSize = 18.sp) },
-                            label = { Text("Consultas") }
-                        )
-                        NavigationBarItem(
-                            selected = tabSeleccionadaIndex == 4,
-                            onClick = { tabSeleccionadaIndex = 4 },
-                            icon = { Text("👤", fontSize = 18.sp) },
-                            label = { Text("Perfil") }
-                        )
-                    }
-                    ModoApp.ANUNCIANTE -> {
-                        NavigationBarItem(
-                            selected = tabSeleccionadaIndex == 0,
-                            onClick = { tabSeleccionadaIndex = 0 },
-                            icon = { Text("💬", fontSize = 18.sp) },
-                            label = { Text("Consultas") }
-                        )
-                        NavigationBarItem(
-                            selected = tabSeleccionadaIndex == 1,
-                            onClick = { tabSeleccionadaIndex = 1 },
-                            icon = { Text("👤", fontSize = 18.sp) },
-                            label = { Text("Perfil") }
-                        )
-                    }
-                    ModoApp.ADMINISTRADOR -> {
-                        NavigationBarItem(
-                            selected = tabSeleccionadaIndex == 0,
-                            onClick = { tabSeleccionadaIndex = 0 },
-                            icon = { Text("👤", fontSize = 18.sp) },
-                            label = { Text("Perfil") }
-                        )
+            if (!mostrandoAsistenteAnuncio) {
+                NavigationBar {
+                    when (estado.modoActivo) {
+                        ModoApp.BUSCADOR -> {
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 0,
+                                onClick = { tabSeleccionadaIndex = 0 },
+                                icon = { Text("🏠", fontSize = 18.sp) },
+                                label = { Text("Explorar") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 1,
+                                onClick = { tabSeleccionadaIndex = 1 },
+                                icon = { Text("❤️", fontSize = 18.sp) },
+                                label = { Text("Favoritos") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 2,
+                                onClick = { tabSeleccionadaIndex = 2 },
+                                icon = { Text("🔔", fontSize = 18.sp) },
+                                label = { Text("Alertas") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 3,
+                                onClick = { tabSeleccionadaIndex = 3 },
+                                icon = { Text("💬", fontSize = 18.sp) },
+                                label = { Text("Consultas") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 4,
+                                onClick = { tabSeleccionadaIndex = 4 },
+                                icon = { Text("👤", fontSize = 18.sp) },
+                                label = { Text("Perfil") }
+                            )
+                        }
+                        ModoApp.ANUNCIANTE -> {
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 0,
+                                onClick = { tabSeleccionadaIndex = 0 },
+                                icon = { Text("🏠", fontSize = 18.sp) },
+                                label = { Text("Mis Anuncios") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 1,
+                                onClick = { tabSeleccionadaIndex = 1 },
+                                icon = { Text("💬", fontSize = 18.sp) },
+                                label = { Text("Consultas") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 2,
+                                onClick = { tabSeleccionadaIndex = 2 },
+                                icon = { Text("🛡️", fontSize = 18.sp) },
+                                label = { Text("Verificación") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 3,
+                                onClick = { tabSeleccionadaIndex = 3 },
+                                icon = { Text("⭐", fontSize = 18.sp) },
+                                label = { Text("Planes") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 4,
+                                onClick = { tabSeleccionadaIndex = 4 },
+                                icon = { Text("👤", fontSize = 18.sp) },
+                                label = { Text("Perfil") }
+                            )
+                        }
+                        ModoApp.ADMINISTRADOR -> {
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 0,
+                                onClick = { tabSeleccionadaIndex = 0 },
+                                icon = { Text("🛡️", fontSize = 18.sp) },
+                                label = { Text("Moderación") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 1,
+                                onClick = { tabSeleccionadaIndex = 1 },
+                                icon = { Text("✔️", fontSize = 18.sp) },
+                                label = { Text("Verificaciones") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 2,
+                                onClick = { tabSeleccionadaIndex = 2 },
+                                icon = { Text("⚠️", fontSize = 18.sp) },
+                                label = { Text("Reportes") }
+                            )
+                            NavigationBarItem(
+                                selected = tabSeleccionadaIndex == 3,
+                                onClick = { tabSeleccionadaIndex = 3 },
+                                icon = { Text("👤", fontSize = 18.sp) },
+                                label = { Text("Perfil") }
+                            )
+                        }
                     }
                 }
             }
@@ -100,24 +141,42 @@ fun MainScreen(estado: EstadoApp) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when (estado.modoActivo) {
-                ModoApp.BUSCADOR -> {
-                    when (tabSeleccionadaIndex) {
-                        0 -> ExplorarScreen(estado)
-                        1 -> FavoritosScreen(estado)
-                        2 -> AlertasScreen(estado)
-                        3 -> ConsultasScreen(estado)
-                        4 -> PerfilScreen(estado)
-                    }
+            if (mostrandoAsistenteAnuncio) {
+                AsistenteAnuncioScreen(estado) {
+                    mostrandoAsistenteAnuncio = false
                 }
-                ModoApp.ANUNCIANTE -> {
-                    when (tabSeleccionadaIndex) {
-                        0 -> ConsultasScreen(estado)
-                        1 -> PerfilScreen(estado)
+            } else {
+                when (estado.modoActivo) {
+                    ModoApp.BUSCADOR -> {
+                        when (tabSeleccionadaIndex) {
+                            0 -> ExplorarScreen(estado)
+                            1 -> FavoritosScreen(estado)
+                            2 -> AlertasScreen(estado)
+                            3 -> ConsultasScreen(estado)
+                            4 -> PerfilScreen(estado)
+                        }
                     }
-                }
-                ModoApp.ADMINISTRADOR -> {
-                    PerfilScreen(estado)
+                    ModoApp.ANUNCIANTE -> {
+                        when (tabSeleccionadaIndex) {
+                            0 -> MisAnunciosScreen(
+                                estado = estado,
+                                onIrANuevoAnuncio = { mostrandoAsistenteAnuncio = true },
+                                onIrAPlanes = { tabSeleccionadaIndex = 3 }
+                            )
+                            1 -> ConsultasScreen(estado)
+                            2 -> VerificacionScreen(estado)
+                            3 -> PlanesScreen(estado)
+                            4 -> PerfilScreen(estado)
+                        }
+                    }
+                    ModoApp.ADMINISTRADOR -> {
+                        when (tabSeleccionadaIndex) {
+                            0 -> AdminModeracionScreen(estado)
+                            1 -> AdminVerificacionesScreen(estado)
+                            2 -> AdminReportesScreen(estado)
+                            3 -> PerfilScreen(estado)
+                        }
+                    }
                 }
             }
         }

@@ -27,7 +27,6 @@ object DatosDemo {
 
     fun generarUsuarios(zonas: List<Zona>, planes: List<PlanPublicacion>): Pair<List<Usuario>, List<Anuncio>> {
         val ahora = Date()
-        val fechaAntigua = Date(ahora.time - 50L * 24 * 60 * 60 * 1000)
 
         val ana = Usuario(
             id = 1,
@@ -54,7 +53,7 @@ object DatosDemo {
         ).apply {
             roles.add(RolBuscador())
             val rolCarlos = RolAnunciante(TipoAnunciante.CORREDOR, true).apply {
-                plan = planes[2]
+                plan = planes[2] // Profesional (destacado = true)
             }
             roles.add(rolCarlos)
         }
@@ -134,7 +133,7 @@ object DatosDemo {
         )
 
         // 2. Ana publica Habitacion Miraflores
-        val a2 = crearAnuncioItem(
+        crearAnuncioItem(
             titulo = "Habitación amoblada en Miraflores",
             desc = "Ideal estudiantes o profesionales, baño compartido, incluye internet y agua.",
             inmueble = Inmueble(202, TipoInmueble.HABITACION, 25.0, 1, 1, true, false, "Internet, agua, luz", Ubicacion(-16.5000, -68.1100, "Calle Honduras #450", false, zonas[5])).apply {
@@ -145,7 +144,7 @@ object DatosDemo {
             estadoDeseado = "Publicado"
         )
 
-        // 3. Carlos publica Casa Calacoto
+        // 3. Carlos publica Casa Calacoto (Destacado por plan Profesional)
         val cCasa = crearAnuncioItem(
             titulo = "Moderna Casa en Calacoto Sur",
             desc = "Residencia con 5 dormitorios, jardín amplio, parrillero y garaje para 4 vehículos.",
@@ -169,20 +168,19 @@ object DatosDemo {
             estadoDeseado = "Publicado"
         )
 
-        // 5. Carlos publica Depto San Miguel
-        crearAnuncioItem(
-            titulo = "Amplio Departamento en San Miguel",
-            desc = "Zona comercial y bancaria, 2 suites, living comedor con vista panorámica.",
-            inmueble = Inmueble(205, TipoInmueble.DEPARTAMENTO, 140.0, 2, 3, false, false, "Expensas bajas", Ubicacion(-16.5350, -68.0850, "Montenegro #890", false, zonas[3])).apply {
-                fotos.add(Foto(5, "demo://foto/5", 1, true))
-            },
-            condicion = Anticretico(Moneda.USD, "Folio real al día", 55000.0, 24),
-            propietario = carlos,
-            estadoDeseado = "Publicado"
-        )
+        // --- DEMO VERIFICACIONES ---
+        val verif1 = Verificacion(1, TipoVerificacion.IDENTIDAD, EstadoVerificacion.APROBADA, ahora, "demo://evidencia/1")
+        carlos.verificaciones.add(verif1)
+
+        val verif2 = Verificacion(2, TipoVerificacion.PROPIEDAD, EstadoVerificacion.PENDIENTE, ahora, "demo://evidencia/2")
+        ana.verificaciones.add(verif2)
+        a1.verificaciones.add(verif2)
+
+        val verif3 = Verificacion(3, TipoVerificacion.UBICACION, EstadoVerificacion.RECHAZADA, ahora, "demo://evidencia/3")
+        carlos.verificaciones.add(verif3)
+        cCasa.verificaciones.add(verif3)
 
         // --- DEMO CONSULTAS, VISITAS, ALERTAS, REPORTES ---
-        // 3 Consultas enviadas por Ana a anuncios de Carlos (cCasa)
         val consAna1 = Consulta(1, "Me interesa la casa, ¿sigue disponible?", CanalContacto.APP, EstadoConsulta.PENDIENTE, ahora, cCasa).apply {
             visitas.add(Visita(1, Date(ahora.time + 86400000L * 2), EstadoVisita.SOLICITADA))
         }
@@ -192,23 +190,20 @@ object DatosDemo {
         val consAna3 = Consulta(3, "Muchas gracias por la atención.", CanalContacto.EMAIL, EstadoConsulta.CERRADA, Date(ahora.time - 172800000L), cCasa)
         ana.consultas.addAll(listOf(consAna1, consAna2, consAna3))
 
-        // 2 Consultas enviadas por Pedro a anuncios de Ana (a1)
         val consPedro1 = Consulta(4, "Hola, ¿admite mascota pequeña?", CanalContacto.APP, EstadoConsulta.PENDIENTE, ahora, a1).apply {
             visitas.add(Visita(3, Date(ahora.time + 86400000L * 3), EstadoVisita.SOLICITADA))
         }
         val consPedro2 = Consulta(5, "Quisiera agendar visita este fin de semana", CanalContacto.TELEFONO, EstadoConsulta.RESPONDIDA, Date(ahora.time - 43200000L), a1)
         pedro.consultas.addAll(listOf(consPedro1, consPedro2))
 
-        // 2 Alertas de búsqueda de Ana (una con zona, una sin zona)
         val alerta1 = AlertaBusqueda(1, TipoOperacion.ALQUILER, 2000.0, 5000.0, true).apply {
-            zona = zonas[2] // Sopocachi
+            zona = zonas[2]
         }
         val alerta2 = AlertaBusqueda(2, TipoOperacion.VENTA, 50000.0, 300000.0, true).apply {
             zona = null
         }
         ana.alertas.addAll(listOf(alerta1, alerta2))
 
-        // 1 Reporte ABIERTO de Ana sobre un anuncio de Carlos (cCasa)
         val reporteAna = Reporte(1, MotivoReporte.INFORMACION_FALSA, "El número de habitaciones no coincide con la descripción.", EstadoReporte.ABIERTO, ahora, cCasa)
         ana.reportes.add(reporteAna)
 

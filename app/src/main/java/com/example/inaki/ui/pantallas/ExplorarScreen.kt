@@ -31,7 +31,7 @@ import java.util.Date
 @Composable
 fun ExplorarScreen(estado: EstadoApp) {
     var textoBusqueda by remember { mutableStateOf("") }
-    var operacionSeleccionada by remember { mutableStateOf<TipoOperacion?>(null) } // null = Todos
+    var operacionSeleccionada by remember { mutableStateOf<TipoOperacion?>(null) }
     var verMapa by remember { mutableStateOf(false) }
     var mostrarFiltrosSheet by remember { mutableStateOf(false) }
     var filtrosActivos by remember { mutableStateOf<List<FiltroBusqueda>>(emptyList()) }
@@ -51,6 +51,12 @@ fun ExplorarScreen(estado: EstadoApp) {
         val cumpleFiltros = filtrosActivos.all { it.cumple(anuncio) }
 
         coincideTexto && coincideOperacion && cumpleFiltros
+    }
+
+    val anunciosOrdenados = anunciosFiltrados.sortedByDescending { anuncio ->
+        val duenho = estado.usuarios.find { u -> u.anuncios.any { it.id == anuncio.id } }
+        val esDestacado = duenho?.roles?.filterIsInstance<RolAnunciante>()?.any { it.plan?.destacado == true } == true
+        if (esDestacado) 1 else 0
     }
 
     val usuario = estado.usuarioActual
@@ -110,7 +116,7 @@ fun ExplorarScreen(estado: EstadoApp) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${anunciosFiltrados.size} inmuebles encontrados",
+                text = "${anunciosOrdenados.size} inmuebles encontrados",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -167,7 +173,7 @@ fun ExplorarScreen(estado: EstadoApp) {
                     val boxW = constraints.maxWidth.toFloat()
                     val boxH = constraints.maxHeight.toFloat()
 
-                    anunciosFiltrados.forEach { anuncio ->
+                    anunciosOrdenados.forEach { anuncio ->
                         val lat = anuncio.inmueble.ubicacion.latitud
                         val lon = anuncio.inmueble.ubicacion.longitud
                         val aprox = anuncio.inmueble.ubicacion.esAproximada
@@ -222,7 +228,7 @@ fun ExplorarScreen(estado: EstadoApp) {
                 }
             }
         } else {
-            if (anunciosFiltrados.isEmpty()) {
+            if (anunciosOrdenados.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -238,9 +244,11 @@ fun ExplorarScreen(estado: EstadoApp) {
                         .weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(anunciosFiltrados) { anuncio ->
+                    items(anunciosOrdenados) { anuncio ->
                         val duenho = estado.usuarios.find { u -> u.anuncios.any { it.id == anuncio.id } }
-                        val verificado = duenho?.roles?.filterIsInstance<RolAnunciante>()?.any { it.verificado } ?: false
+                        val rolAnun = duenho?.roles?.filterIsInstance<RolAnunciante>()?.firstOrNull()
+                        val verificado = rolAnun?.verificado ?: false
+                        val esDestacado = rolAnun?.plan?.destacado ?: false
                         val diasSinConfirmar = (System.currentTimeMillis() - anuncio.fechaUltimaConfirmacion.time) / (1000 * 60 * 60 * 24)
                         val sinConfirmar = diasSinConfirmar > 30
 
@@ -341,6 +349,14 @@ fun ExplorarScreen(estado: EstadoApp) {
                                                 .padding(top = 4.dp),
                                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                                         ) {
+                                            if (esDestacado) {
+                                                Surface(
+                                                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                                                    shape = MaterialTheme.shapes.extraSmall
+                                                ) {
+                                                    Text("⭐ Destacado", fontSize = 10.sp, modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
+                                                }
+                                            }
                                             if (verificado) {
                                                 Surface(
                                                     color = MaterialTheme.colorScheme.secondaryContainer,
