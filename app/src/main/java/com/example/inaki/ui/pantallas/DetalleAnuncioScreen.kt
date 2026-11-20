@@ -1,6 +1,7 @@
 package com.example.inaki.ui.pantallas
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -13,9 +14,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.inaki.dominio.abstracciones.NotificadorEmail
+import com.example.inaki.dominio.abstracciones.NotificadorPush
+import com.example.inaki.dominio.abstracciones.NotificadorWhatsApp
+import com.example.inaki.dominio.enums.CanalContacto
+import com.example.inaki.dominio.enums.EstadoConsulta
+import com.example.inaki.dominio.enums.EstadoReporte
+import com.example.inaki.dominio.enums.EstadoVisita
+import com.example.inaki.dominio.enums.MotivoReporte
 import com.example.inaki.dominio.modelo.*
 import com.example.inaki.ui.EstadoApp
 import com.example.inaki.ui.navegacion.Pantalla
+import java.util.Calendar
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,7 +42,13 @@ fun DetalleAnuncioScreen(estado: EstadoApp, anuncioId: Int) {
     }
 
     val esFavorito = usuario?.favoritos?.any { it.anuncio.id == anuncio.id } ?: false
+    val esPropietario = usuario?.anuncios?.any { it.id == anuncio.id } == true
     var horizonteMeses by remember { mutableFloatStateOf(12f) }
+
+    // Dialog states
+    var mostrarConsultarDialog by remember { mutableStateOf(false) }
+    var mostrarVisitaDialog by remember { mutableStateOf(false) }
+    var mostrarReportarDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -44,8 +60,8 @@ fun DetalleAnuncioScreen(estado: EstadoApp, anuncioId: Int) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        if (usuario != null) {
+                    if (usuario != null && !esPropietario) {
+                        IconButton(onClick = {
                             if (esFavorito) {
                                 val fav = usuario.favoritos.firstOrNull { it.anuncio.id == anuncio.id }
                                 if (fav != null) usuario.favoritos.remove(fav)
@@ -56,9 +72,9 @@ fun DetalleAnuncioScreen(estado: EstadoApp, anuncioId: Int) {
                                 estado.mostrarMensaje("Agregado a favoritos")
                             }
                             estado.notificarCambio()
+                        }) {
+                            Text(if (esFavorito) "❤️" else "🤍", fontSize = 20.sp)
                         }
-                    }) {
-                        Text(if (esFavorito) "❤️" else "🤍", fontSize = 20.sp)
                     }
                 }
             )
@@ -156,31 +172,270 @@ fun DetalleAnuncioScreen(estado: EstadoApp, anuncioId: Int) {
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = { estado.mostrarMensaje("Se activa en el Commit 3") },
-                    modifier = Modifier.weight(1f)
+            if (!esPropietario && usuario != null) {
+                val tieneConsultar = usuario.roles.any { it.tienePermiso("enviar_consulta") }
+                val tieneVisita = usuario.roles.any { it.tienePermiso("solicitar_visita") }
+                val tieneReportar = usuario.roles.any { it.tienePermiso("reportar") }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Consultar", fontSize = 12.sp)
+                    if (tieneConsultar) {
+                        Button(
+                            onClick = { mostrarConsultarDialog = true },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Consultar", fontSize = 12.sp)
+                        }
+                    }
+                    if (tieneVisita) {
+                        Button(
+                            onClick = {
+                                val tieneConsulta = usuario.consultas.any { it.anuncio.id == anuncio.id }
+                                if (!tieneConsulta) {
+                                    estado.mostrarMensaje("Debe enviar una consulta primero")
+                                    mostrarConsultarDialog = true
+                                } else {
+                                    mostrarVisitaDialog = true
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Visita", fontSize = 12.sp)
+                        }
+                    }
+                    if (tieneReportar) {
+                        OutlinedButton(
+                            onClick = { mostrarReportarDialog = true },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Reportar", fontSize = 12.sp)
+                        }
+                    }
                 }
-                Button(
-                    onClick = { estado.mostrarMensaje("Se activa en el Commit 3") },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Visita", fontSize = 12.sp)
-                }
-                OutlinedButton(
-                    onClick = { estado.mostrarMensaje("Se activa en el Commit 3") },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Reportar", fontSize = 12.sp)
-                }
+            } else if (esPropietario) {
+                Text(
+                    text = "Este es tu propio anuncio",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+
+    // --- DIALOGO CONSULTAR ---
+    if (mostrarConsultarDialog) {
+        var mensajeTexto by remember { mutableStateOf("") }
+        var canalSeleccionado by remember { mutableStateOf(CanalContacto.APP) }
+
+        AlertDialog(
+            onDismissRequest = { mostrarConsultarDialog = false },
+            title = { Text("Enviar Consulta") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Canal de contacto:")
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        CanalContacto.entries.forEach { canal ->
+                            FilterChip(
+                                selected = canalSeleccionado == canal,
+                                onClick = { canalSeleccionado = canal },
+                                label = { Text(canal.name, fontSize = 9.sp) }
+                            )
+                        }
+                    }
+                    OutlinedTextField(
+                        value = mensajeTexto,
+                        onValueChange = { mensajeTexto = it },
+                        label = { Text("Mensaje al anunciante") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (mensajeTexto.isBlank()) {
+                        estado.mostrarMensaje("El mensaje no puede estar vacío")
+                        return@Button
+                    }
+                    val nuevaConsulta = Consulta(
+                        id = estado.siguienteId(),
+                        mensaje = mensajeTexto.trim(),
+                        canal = canalSeleccionado,
+                        estado = EstadoConsulta.PENDIENTE,
+                        fecha = Date(),
+                        anuncio = anuncio
+                    )
+                    usuario?.consultas?.add(nuevaConsulta)
+
+                    val propietarioCorreo = estado.usuarios.find { u -> u.anuncios.any { it.id == anuncio.id } }?.correo ?: "propietario@inaki.bo"
+                    when (canalSeleccionado) {
+                        CanalContacto.EMAIL -> NotificadorEmail().enviar(propietarioCorreo, mensajeTexto)
+                        CanalContacto.WHATSAPP -> NotificadorWhatsApp().enviar(propietarioCorreo, mensajeTexto)
+                        else -> NotificadorPush().enviar(propietarioCorreo, mensajeTexto)
+                    }
+
+                    estado.notificarCambio()
+                    estado.mostrarMensaje("Consulta enviada con éxito")
+                    mostrarConsultarDialog = false
+                }) {
+                    Text("Enviar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarConsultarDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // --- DIALOGO VISITA ---
+    if (mostrarVisitaDialog) {
+        val cal = Calendar.getInstance()
+        val diasDisponibles = (1..7).map {
+            cal.time.also { cal.add(Calendar.DAY_OF_MONTH, 1) }
+        }
+        var diaSeleccionado by remember { mutableStateOf(diasDisponibles.first()) }
+        val horasDisponibles = listOf("09:00", "11:00", "15:00", "17:00")
+        var horaSeleccionada by remember { mutableStateOf(horasDisponibles.first()) }
+
+        AlertDialog(
+            onDismissRequest = { mostrarVisitaDialog = false },
+            title = { Text("Solicitar Visita") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Seleccione día:")
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        diasDisponibles.take(4).forEach { d ->
+                            val label = android.text.format.DateFormat.format("dd/MM", d).toString()
+                            FilterChip(
+                                selected = diaSeleccionado == d,
+                                onClick = { diaSeleccionado = d },
+                                label = { Text(label, fontSize = 10.sp) }
+                            )
+                        }
+                    }
+                    Text("Seleccione hora:")
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        horasDisponibles.forEach { h ->
+                            FilterChip(
+                                selected = horaSeleccionada == h,
+                                onClick = { horaSeleccionada = h },
+                                label = { Text(h, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val consultaPropia = usuario?.consultas?.firstOrNull { it.anuncio.id == anuncio.id }
+                    if (consultaPropia == null) {
+                        estado.mostrarMensaje("Debe enviar una consulta primero")
+                        mostrarVisitaDialog = false
+                        mostrarConsultarDialog = true
+                        return@Button
+                    }
+                    val parts = horaSeleccionada.split(":")
+                    val hora = parts[0].toInt()
+                    val minuto = parts[1].toInt()
+                    val calFinal = Calendar.getInstance().apply {
+                        time = diaSeleccionado
+                        set(Calendar.HOUR_OF_DAY, hora)
+                        set(Calendar.MINUTE, minuto)
+                    }
+
+                    val nuevaVisita = Visita(
+                        id = estado.siguienteId(),
+                        fechaHora = calFinal.time,
+                        estado = EstadoVisita.SOLICITADA
+                    )
+                    consultaPropia.visitas.add(nuevaVisita)
+                    estado.notificarCambio()
+                    estado.mostrarMensaje("Visita solicitada con éxito")
+                    mostrarVisitaDialog = false
+                }) {
+                    Text("Confirmar Visita")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarVisitaDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // --- DIALOGO REPORTAR ---
+    if (mostrarReportarDialog) {
+        var motivoSeleccionado by remember { mutableStateOf(MotivoReporte.INFORMACION_FALSA) }
+        var descripcionReporte by remember { mutableStateOf("") }
+
+        AlertDialog(
+            onDismissRequest = { mostrarReportarDialog = false },
+            title = { Text("Reportar Anuncio") },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("Seleccione motivo:")
+                    MotivoReporte.entries.forEach { motivo ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { motivoSeleccionado = motivo }
+                        ) {
+                            RadioButton(
+                                selected = motivoSeleccionado == motivo,
+                                onClick = { motivoSeleccionado = motivo }
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(motivo.name, fontSize = 13.sp)
+                        }
+                    }
+                    OutlinedTextField(
+                        value = descripcionReporte,
+                        onValueChange = { descripcionReporte = it },
+                        label = { Text("Descripción adicional (opcional)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val yaReportado = usuario?.reportes?.any { it.anuncio.id == anuncio.id && it.motivo == motivoSeleccionado } == true
+                    if (yaReportado) {
+                        estado.mostrarMensaje("Ya ha reportado este anuncio con este motivo")
+                        return@Button
+                    }
+                    val nuevoReporte = Reporte(
+                        id = estado.siguienteId(),
+                        motivo = motivoSeleccionado,
+                        descripcion = descripcionReporte.trim(),
+                        estado = EstadoReporte.ABIERTO,
+                        fecha = Date(),
+                        anuncio = anuncio
+                    )
+                    usuario?.reportes?.add(nuevoReporte)
+                    estado.notificarCambio()
+                    estado.mostrarMensaje("Reporte enviado con éxito")
+                    mostrarReportarDialog = false
+                }) {
+                    Text("Enviar Reporte")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarReportarDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
