@@ -8,11 +8,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.enums.EstadoReporte
 import com.example.inaki.dominio.modelo.Reporte
 import com.example.inaki.ui.EstadoApp
+import com.example.inaki.ui.theme.InakiTheme
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -124,5 +126,14 @@ fun AdminReportesScreen(estado: EstadoApp) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AdminReportesScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp() }
+        AdminReportesScreen(estado = estado)
     }
 }

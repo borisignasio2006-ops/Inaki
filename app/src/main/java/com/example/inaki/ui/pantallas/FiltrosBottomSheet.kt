@@ -10,11 +10,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.enums.TipoInmueble
 import com.example.inaki.dominio.filtros.*
 import com.example.inaki.dominio.modelo.Zona
+import com.example.inaki.ui.EstadoApp
+import com.example.inaki.ui.theme.InakiTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -197,5 +200,19 @@ fun FiltrosBottomSheet(
 
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FiltrosBottomSheetPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp() }
+        FiltrosBottomSheet(
+            zonas = estado.zonas,
+            filtrosActuales = emptyList(),
+            onAplicar = {},
+            onCerrar = {}
+        )
     }
 }

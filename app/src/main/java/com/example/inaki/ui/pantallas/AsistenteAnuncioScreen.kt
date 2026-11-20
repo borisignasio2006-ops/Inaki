@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.abstracciones.NotificadorPush
@@ -21,6 +22,7 @@ import com.example.inaki.dominio.enums.TipoInmueble
 import com.example.inaki.dominio.enums.TipoOperacion
 import com.example.inaki.dominio.modelo.*
 import com.example.inaki.ui.EstadoApp
+import com.example.inaki.ui.theme.InakiTheme
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -387,4 +389,13 @@ private fun guardarAnuncio(
     estado.anuncios.add(anuncio)
     estado.notificarCambio()
     return anuncio
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AsistenteAnuncioScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp().apply { usuarioActual = usuarios.firstOrNull() } }
+        AsistenteAnuncioScreen(estado = estado, onVolver = {})
+    }
 }

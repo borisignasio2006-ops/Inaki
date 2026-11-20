@@ -8,10 +8,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.modelo.*
 import com.example.inaki.ui.EstadoApp
+import com.example.inaki.ui.theme.InakiTheme
 
 @Composable
 fun AdminModeracionScreen(estado: EstadoApp) {
@@ -127,5 +129,14 @@ fun AdminModeracionScreen(estado: EstadoApp) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AdminModeracionScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp() }
+        AdminModeracionScreen(estado = estado)
     }
 }

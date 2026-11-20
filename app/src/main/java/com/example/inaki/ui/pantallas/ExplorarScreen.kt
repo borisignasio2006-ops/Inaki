@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.enums.TipoOperacion
@@ -25,6 +26,7 @@ import com.example.inaki.dominio.modelo.Publicado
 import com.example.inaki.dominio.modelo.RolAnunciante
 import com.example.inaki.ui.EstadoApp
 import com.example.inaki.ui.navegacion.Pantalla
+import com.example.inaki.ui.theme.InakiTheme
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -395,5 +397,14 @@ fun ExplorarScreen(estado: EstadoApp) {
                 mostrarFiltrosSheet = false
             }
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExplorarScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp().apply { usuarioActual = usuarios.firstOrNull() } }
+        ExplorarScreen(estado = estado)
     }
 }

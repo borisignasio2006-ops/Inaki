@@ -8,11 +8,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.abstracciones.NotificadorPush
 import com.example.inaki.dominio.modelo.*
 import com.example.inaki.ui.EstadoApp
+import com.example.inaki.ui.theme.InakiTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -198,5 +200,14 @@ fun MisAnunciosScreen(estado: EstadoApp, onIrANuevoAnuncio: () -> Unit, onIrAPla
                 }
             }
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MisAnunciosScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp().apply { usuarioActual = usuarios.firstOrNull() } }
+        MisAnunciosScreen(estado = estado, onIrANuevoAnuncio = {}, onIrAPlanes = {})
     }
 }

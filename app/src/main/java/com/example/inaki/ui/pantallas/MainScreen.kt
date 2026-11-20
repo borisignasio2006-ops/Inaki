@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.ui.EstadoApp
 import com.example.inaki.ui.ModoApp
+import com.example.inaki.ui.theme.InakiTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,5 +182,14 @@ fun MainScreen(estado: EstadoApp) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MainScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp().apply { usuarioActual = usuarios.firstOrNull() } }
+        MainScreen(estado = estado)
     }
 }

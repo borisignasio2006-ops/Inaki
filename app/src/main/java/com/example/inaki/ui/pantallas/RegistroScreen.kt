@@ -11,11 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.enums.TipoAnunciante
 import com.example.inaki.ui.EstadoApp
 import com.example.inaki.ui.navegacion.Pantalla
+import com.example.inaki.ui.theme.InakiTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,5 +137,14 @@ fun RegistroScreen(estado: EstadoApp) {
                 Text("Registrarse")
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RegistroScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp() }
+        RegistroScreen(estado = estado)
     }
 }

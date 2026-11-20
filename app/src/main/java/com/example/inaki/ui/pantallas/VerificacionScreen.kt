@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.enums.EstadoVerificacion
@@ -15,6 +16,7 @@ import com.example.inaki.dominio.enums.TipoVerificacion
 import com.example.inaki.dominio.modelo.Anuncio
 import com.example.inaki.dominio.modelo.Verificacion
 import com.example.inaki.ui.EstadoApp
+import com.example.inaki.ui.theme.InakiTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -175,5 +177,14 @@ fun VerificacionScreen(estado: EstadoApp) {
                 }
             }
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun VerificacionScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp().apply { usuarioActual = usuarios.firstOrNull() } }
+        VerificacionScreen(estado = estado)
     }
 }

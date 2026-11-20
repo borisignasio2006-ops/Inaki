@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.abstracciones.NotificadorEmail
@@ -17,6 +18,7 @@ import com.example.inaki.dominio.modelo.*
 import com.example.inaki.ui.EstadoApp
 import com.example.inaki.ui.ModoApp
 import com.example.inaki.ui.navegacion.Pantalla
+import com.example.inaki.ui.theme.InakiTheme
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -254,5 +256,14 @@ fun ConsultasScreen(estado: EstadoApp) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ConsultasScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp().apply { usuarioActual = usuarios.firstOrNull() } }
+        ConsultasScreen(estado = estado)
     }
 }

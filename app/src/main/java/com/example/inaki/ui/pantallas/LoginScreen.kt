@@ -9,10 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.ui.EstadoApp
 import com.example.inaki.ui.navegacion.Pantalla
+import com.example.inaki.ui.theme.InakiTheme
 
 @Composable
 fun LoginScreen(estado: EstadoApp) {
@@ -124,5 +126,14 @@ fun LoginScreen(estado: EstadoApp) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp() }
+        LoginScreen(estado = estado)
     }
 }

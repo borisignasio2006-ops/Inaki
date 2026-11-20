@@ -8,12 +8,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.inaki.dominio.enums.EstadoVerificacion
 import com.example.inaki.dominio.enums.TipoVerificacion
 import com.example.inaki.dominio.modelo.RolAnunciante
 import com.example.inaki.ui.EstadoApp
+import com.example.inaki.ui.theme.InakiTheme
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -118,5 +120,14 @@ fun AdminVerificacionesScreen(estado: EstadoApp) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AdminVerificacionesScreenPreview() {
+    InakiTheme {
+        val estado = remember { EstadoApp() }
+        AdminVerificacionesScreen(estado = estado)
     }
 }
